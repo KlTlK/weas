@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use std::path::Path;
 use std::process::Stdio;
 use tokio::process::{Child, Command};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 pub struct SingBoxProcess {
     child: Child,

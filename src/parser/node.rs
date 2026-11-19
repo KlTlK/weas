@@ -20,7 +20,7 @@ pub fn parse_node_link(link: &str) -> Result<NodeInfo> {
 
 fn parse_vless_link(link: &str) -> Result<NodeInfo> {
     let parsed = Url::parse(link)?;
-    let uuid = parsed.username();
+    let _uuid = parsed.username();
     let host = parsed
         .host_str()
         .ok_or_else(|| anyhow!("Missing host in VLESS link"))?;
@@ -29,7 +29,7 @@ fn parse_vless_link(link: &str) -> Result<NodeInfo> {
         .ok_or_else(|| anyhow!("Missing port in VLESS link"))?;
     let name = parsed
         .fragment()
-        .map(|f| urlencoding_decode(f))
+        .map(urlencoding_decode)
         .unwrap_or_else(|| format!("{}:{}", host, port));
 
     let id = format!("{:x}", md5_hash(link));
@@ -52,7 +52,7 @@ fn parse_ss_link(link: &str) -> Result<NodeInfo> {
     };
 
     let name = fragment
-        .map(|f| urlencoding_decode(f))
+        .map(urlencoding_decode)
         .unwrap_or_else(|| "Shadowsocks".into());
 
     let (host, port) = if let Some((_, host_part)) = body.split_once('@') {
@@ -64,7 +64,7 @@ fn parse_ss_link(link: &str) -> Result<NodeInfo> {
         // May be entirely base64 encoded
         let decoded = decode_base64_loose(body)?;
         let decoded_str = String::from_utf8(decoded)?;
-        let (credentials, host_part) = decoded_str
+        let (_credentials, host_part) = decoded_str
             .split_once('@')
             .ok_or_else(|| anyhow!("Invalid base64 shadowsocks body"))?;
         let (h, p) = host_part
@@ -95,7 +95,7 @@ fn parse_trojan_link(link: &str) -> Result<NodeInfo> {
         .ok_or_else(|| anyhow!("Missing port in Trojan link"))?;
     let name = parsed
         .fragment()
-        .map(|f| urlencoding_decode(f))
+        .map(urlencoding_decode)
         .unwrap_or_else(|| format!("Trojan-{}:{}", host, port));
 
     let id = format!("{:x}", md5_hash(link));

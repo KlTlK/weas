@@ -1,7 +1,6 @@
 pub fn is_admin() -> bool {
     #[cfg(windows)]
     {
-        // Simple check on Windows: try opening a privileged path or checking TokenElevation
         use std::process::Command;
         let output = Command::new("net")
             .arg("session")
@@ -14,7 +13,15 @@ pub fn is_admin() -> bool {
 
     #[cfg(unix)]
     {
-        // Check UID == 0 (root)
-        unsafe { libc::geteuid() == 0 }
+        std::process::Command::new("id")
+            .arg("-u")
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim() == "0")
+            .unwrap_or(false)
+    }
+
+    #[cfg(not(any(windows, unix)))]
+    {
+        false
     }
 }

@@ -1,22 +1,26 @@
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrafficInfo {
     pub up: u64,
     pub down: u64,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DelayResponse {
     pub delay: u64,
 }
 
+#[allow(dead_code)]
 pub struct ClashApiClient {
     base_url: String,
     client: reqwest::Client,
 }
 
+#[allow(dead_code)]
 impl ClashApiClient {
     pub fn new(port: u16) -> Self {
         Self {

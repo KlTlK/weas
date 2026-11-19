@@ -6,11 +6,9 @@ use crate::core::process::SingBoxProcess;
 use crate::parser::node::parse_node_link;
 use crate::parser::subscription::fetch_and_parse_subscription;
 use crate::sys::{is_admin, SystemProxy};
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Result};
 use colored::*;
 use std::fs;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 use tracing::info;
 
 pub async fn run(mode_override: Option<ModeArg>, node_override: Option<String>) -> Result<()> {
@@ -68,13 +66,9 @@ pub async fn run(mode_override: Option<ModeArg>, node_override: Option<String>) 
     }
 
     // Set up graceful cleanup on Ctrl+C
-    let running = Arc::new(AtomicBool::new(true));
-    let r = running.clone();
     let mode_clone = config.mode.clone();
-
     ctrlc::set_handler(move || {
         println!("\n{}", "Interrupt received, stopping weas VPN...".yellow());
-        r.store(false, Ordering::SeqCst);
         if mode_clone == ProxyMode::SysProxy {
             let _ = SystemProxy::disable();
         }

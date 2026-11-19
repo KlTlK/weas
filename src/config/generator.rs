@@ -1,7 +1,7 @@
 use crate::config::app_config::{AppConfig, NodeInfo, ProxyMode};
 use crate::config::singbox::*;
 use crate::parser::node::parse_node_to_outbound;
-use anyhow::{bail, Result};
+use anyhow::Result;
 
 pub fn generate_singbox_config(app_config: &AppConfig, node: &NodeInfo) -> Result<SingBoxConfig> {
     let mut inbounds = Vec::new();

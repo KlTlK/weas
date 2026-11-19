@@ -12,7 +12,7 @@ pub fn find_singbox_binary() -> Option<PathBuf> {
         PathBuf::from("sing-box")
     };
     if current_dir_bin.exists() {
-        return Some(fs::canonicalize(current_dir_bin).unwrap_or(current_dir_bin));
+        return Some(fs::canonicalize(&current_dir_bin).unwrap_or(current_dir_bin));
     }
 
     // 2. Check next to current executable
@@ -121,7 +121,6 @@ pub async fn download_singbox(target_dir: &Path) -> Result<PathBuf> {
     if ext == "zip" {
         extract_zip(&bytes, target_dir, bin_name)?;
     } else {
-        // Simple placeholder for tar.gz or write directly
         fs::write(&dest_bin_path, &bytes)?;
     }
 
