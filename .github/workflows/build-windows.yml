@@ -1,0 +1,88 @@
+name: Build Windows Release (ZIP)
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build & Package Windows x64
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Download bundled sing-box core
+        shell: pwsh
+        run: |
+          $singboxVersion = "1.10.7"
+          $url = "https://github.com/SagerNet/sing-box/releases/download/v$singboxVersion/sing-box-$singboxVersion-windows-amd64.zip"
+          Write-Host "Downloading sing-box from $url"
+          Invoke-WebRequest -Uri $url -OutFile singbox.zip
+          Expand-Archive -Path singbox.zip -DestinationPath singbox_extracted
+          $singboxBin = (Get-ChildItem -Path singbox_extracted -Filter "sing-box.exe" -Recurse).FullName
+          Copy-Item $singboxBin -Destination .
+          Remove-Item -Recurse -Force singbox.zip, singbox_extracted
+          Write-Host "sing-box binary ready."
+
+      - name: Stage Windows distribution files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist/weas-windows-x64 -Force
+          Copy-Item target/x86_64-pc-windows-msvc/release/weas.exe dist/weas-windows-x64/
+          Copy-Item sing-box.exe dist/weas-windows-x64/
+          Copy-Item README.md dist/weas-windows-x64/
+
+          # Create a helper launch script
+          @'
+          @echo off
+          title WEAS VPN Client
+          echo Starting WEAS VPN in TUN mode...
+          weas.exe run --mode tun
+          pause
+          '@ | Out-File -FilePath dist/weas-windows-x64/start_vpn.bat -Encoding ASCII
+
+          Write-Host "Files in distribution package:"
+          Get-ChildItem dist/weas-windows-x64
+
+      - name: Create ZIP archive
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/weas-windows-x64/* -DestinationPath weas-windows-x64.zip -Force
+          Write-Host "Created archive: weas-windows-x64.zip (Size: $((Get-Item weas-windows-x64.zip).Length / 1MB) MB)"
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: weas-windows-x64
+          path: weas-windows-x64.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: weas-windows-x64.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
