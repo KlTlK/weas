@@ -34,9 +34,9 @@ jobs:
       - name: Download bundled sing-box core
         shell: pwsh
         run: |
-          $singboxVersion = "1.10.7"
+          $singboxVersion = "1.14.4"
           $url = "https://github.com/SagerNet/sing-box/releases/download/v$singboxVersion/sing-box-$singboxVersion-windows-amd64.zip"
-          Write-Host "Downloading sing-box from $url"
+          Write-Host "Downloading latest sing-box from $url"
           Invoke-WebRequest -Uri $url -OutFile singbox.zip
           Expand-Archive -Path singbox.zip -DestinationPath singbox_extracted
           $singboxBin = (Get-ChildItem -Path singbox_extracted -Filter "sing-box.exe" -Recurse).FullName

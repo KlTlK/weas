@@ -84,7 +84,7 @@ pub async fn download_singbox(target_dir: &Path) -> Result<PathBuf> {
         _ => return Err(anyhow!("Unsupported OS/architecture: {}/{}", os, arch)),
     };
 
-    let version = "1.10.7";
+    let version = "1.14.4";
     let filename = format!("sing-box-{}-{}-{}.{}", version, os_tag, arch_tag, ext);
     let download_url = format!(
         "https://github.com/SagerNet/sing-box/releases/download/v{}/{}",
