@@ -143,7 +143,11 @@ fn extract_zip(archive_data: &[u8], target_dir: &Path, expected_bin: &str) -> Re
 
     for i in 0..zip.len() {
         let mut file = zip.by_index(i)?;
-        let name = file.name().to_string();
+        // zip 9.x returns Result<Cow<str>, ZipError> from .name()
+        let name = match file.name() {
+            Ok(n) => n.to_string(),
+            Err(_) => continue,
+        };
         if name.ends_with(expected_bin) {
             let outpath = target_dir.join(expected_bin);
             let mut outfile = fs::File::create(&outpath)?;
