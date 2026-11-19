@@ -64,19 +64,21 @@ jobs:
           Write-Host "Files in distribution package:"
           Get-ChildItem dist/weas-windows-x64
 
-      - name: Create ZIP archive
-        shell: pwsh
-        run: |
-          Compress-Archive -Path dist/weas-windows-x64/* -DestinationPath weas-windows-x64.zip -Force
-          Write-Host "Created archive: weas-windows-x64.zip (Size: $((Get-Item weas-windows-x64.zip).Length / 1MB) MB)"
-
-      - name: Upload ZIP artifact
+      # actions/upload-artifact automatically zips the folder when downloaded from GitHub Actions UI.
+      # Passing the folder directly ensures there is NO nested zip inside!
+      - name: Upload artifact (Actions downloads this as a flat zip)
         uses: actions/upload-artifact@v4
         with:
           name: weas-windows-x64
-          path: weas-windows-x64.zip
+          path: dist/weas-windows-x64/*
           if-no-files-found: error
           retention-days: 30
+
+      - name: Create ZIP archive for GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/weas-windows-x64/* -DestinationPath weas-windows-x64.zip -Force
 
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
